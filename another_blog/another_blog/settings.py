@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'article',
     'userprofile',
+    'password_reset',
 ]
 
 MIDDLEWARE = [
@@ -123,3 +124,11 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "static"),
 )
+
+# 邮箱设置
+EMAIL_HOST = 'smtp.qq.com'
+EMAIL_HOST_USER = '235346734@qq.com'
+EMAIL_HOST_PASSWORD = 'XXXXXXX'
+EMAIL_PORT = 25
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = '另一个博客<123234asd9465@qq.com>'
