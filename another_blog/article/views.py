@@ -4,12 +4,18 @@ from .models import ArticlePost
 import markdown
 from .forms import ArticlePostForm
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 
 # 文章列表
 def article_list(request):
-    articles = ArticlePost.objects.all()
+    articles_list = ArticlePost.objects.all()
+    paginator = Paginator(articles_list, 1)
+    page = request.GET.get('page')
+    articles = paginator.get_page(page)
     context = {'articles': articles}
+
     return render(request, 'article/list.html', context)
 
 
@@ -26,6 +32,7 @@ def article_detail(request, id):
 
 
 # 新增文章
+@login_required(login_url='/userprofile/login/')
 def article_create(request):
     # 判断用户是否提交数据
     if request.method == "POST":
@@ -36,7 +43,7 @@ def article_create(request):
             # 保存数据，暂时不添加到数据库中。
             new_article = article_post_form.save(commit=False)
             # 指定用户为作者。  这里指定id=1的用户作为作者。
-            new_article.author = User.objects.get(id=1)
+            new_article.author = User.objects.get(id=request.user.id)
             # 新文章保存到数据库中
             new_article.save()
             # 存储完成后，返回文章列表
