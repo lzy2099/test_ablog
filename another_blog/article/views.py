@@ -6,15 +6,41 @@ from .forms import ArticlePostForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 
 # 文章列表
 def article_list(request):
-    articles_list = ArticlePost.objects.all()
-    paginator = Paginator(articles_list, 1)
+    search = request.GET.get('search')
+    order = request.GET.get('order')
+    if search:
+        if order == 'total_views':
+            articles_list = ArticlePost.objects.filter(
+                Q(title__icontains=search) | Q(body__icontains=search)
+            ).order_by('-total_views')
+        else:
+            articles_list = ArticlePost.objects.filter(
+                Q(title__icontains=search) | Q(body__icontains=search)
+            )
+    else:
+        search = ''
+        if order == 'total_views':
+            articles_list = ArticlePost.objects.all().order_by('-total_views')
+        else:
+            articles_list = ArticlePost.objects.all().order_by('-created')
+
+
+    # if request.GET.get('order') == 'total_views':
+    #     articles_list = ArticlePost.objects.all().order_by('-total_views')
+    #     order = 'total_views'
+    # else:
+    #     articles_list = ArticlePost.objects.all()
+    #     order = 'normal'
+
+    paginator = Paginator(articles_list, 3)
     page = request.GET.get('page')
     articles = paginator.get_page(page)
-    context = {'articles': articles}
+    context = {'articles': articles, 'order': order, 'search': search}
 
     return render(request, 'article/list.html', context)
 
