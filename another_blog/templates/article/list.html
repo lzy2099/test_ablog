@@ -17,6 +17,11 @@
         </div>
         <div class="card-footer">
           <a href="{% url 'article:article_detail' article.id %}" class="btn btn-primary">阅读文本</a>
+          <span>
+            <small class="col align-self-end" style="color: gray;">
+              浏览：{{ article.total_views }}
+            </small>
+          </span>
         </div>
       </div>
     </div>
@@ -25,7 +30,7 @@
   <div class="pagination row">
     <div class="m-auto">
       <span class="step-links">
-        {% if articles.has_previolus %}
+        {% if articles.has_previous %}
         <a href="?page=1" class="btn btn-success">
           &laquo;1
         </a>

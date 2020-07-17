@@ -22,6 +22,8 @@ def article_list(request):
 # 文章详情
 def article_detail(request, id):
     article = ArticlePost.objects.get(id=id)
+    article.total_views += 1
+    article.save(update_fields=['total_views'])
     article.body = markdown.markdown(
         article.body, extensions=[
             'markdown.extensions.extra',
@@ -61,6 +63,7 @@ def article_create(request):
 
 
 # 删除文章
+@login_required(login_url='/userprofile/login/')
 def article_delete(request, id):
     # 根据id获取要删除的文章
     article = ArticlePost.objects.get(id=id)
@@ -71,28 +74,36 @@ def article_delete(request, id):
 
 
 # 安全删除文章
+@login_required(login_url='/userprofile/login/')
 def article_safe_delete(request, id):
     if request.method == 'POST':
         article = ArticlePost.objects.get(id=id)
-        article.delete()
+        if request.user != article.author:
+            HttpResponse("抱歉，您无全删除此文章。")
+        else:
+            article.delete()
         return redirect("article:article_list")
     else:
         return HttpResponse("仅允许post请求")
 
 
 # 修改文章
+@login_required(login_url='/userprofile/login/')
 def article_update(request, id):
     article = ArticlePost.objects.get(id=id)
-    if request.method == "POST":
-        article_post_form = ArticlePostForm(data=request.POST)
-        if article_post_form.is_valid():
-            article.title = request.POST['title']
-            article.body = request.POST['body']
-            article.save()
-            return redirect("article:article_detail", id=id)
-        else:
-            return HttpResponse("表单内容有误，请重新填写。")
+    if request.user != article.author:
+        return HttpResponse('抱歉，您无权修改此文章。')
     else:
-        article_post_form = ArticlePostForm()
-        context = {'article': article, 'article_post_form': article_post_form}
-        return render(request, 'article/update.html', context)
+        if request.method == "POST":
+            article_post_form = ArticlePostForm(data=request.POST)
+            if article_post_form.is_valid():
+                article.title = request.POST['title']
+                article.body = request.POST['body']
+                article.save()
+                return redirect("article:article_detail", id=id)
+            else:
+                return HttpResponse("表单内容有误，请重新填写。")
+        else:
+            article_post_form = ArticlePostForm()
+            context = {'article': article, 'article_post_form': article_post_form}
+            return render(request, 'article/update.html', context)
