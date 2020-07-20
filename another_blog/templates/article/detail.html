@@ -31,9 +31,49 @@
                 {% csrf_token %}
                 <button type="submit">发送</button>
             </form>
-        <div class="col-9">
+        <div class="col-12">
             <p>{{ article.body|safe }}</p>
         </div>
+            <hr>
+            {% if user.is_authenticated %}
+            <div>
+                <form action="{% url 'comment:post_comment' article.id %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="body">
+                            <strong>我要留言：</strong>
+                        </label>
+                        <textarea type="text" class="form-control" id="body" name="body" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">发送</button>
+                </form>
+            </div>
+            <br>
+            {% else %}
+            <br>
+            <h5 class="row justify-content-center">请<a href="{% url 'userprofile:login' %}">登录</a>后回复。</h5>
+            <br>
+            {% endif %}
+
+            <!-- 显示评论 -->
+            <h4>共有{{ comments.count }}条评论</h4>
+            <div >
+                {% for comment in comments %}
+                <hr>
+                <p>
+                    <strong style="color:pink">
+                        {{ comment.user }}
+                    </strong>于
+                    <span style="color: green">
+                        {{ comment.created|date:"Y-m-d H:i:s" }}
+                    </span>时发表：
+                </p>
+                <pre style="font-family: inherit; font-size: 1em;">{{ comment.body }}</pre>
+                {% if user == comment.user %}
+                <a href="{% url 'comment:delete_comment' article.id comment.id %}" class="btn btn-danger btn-sm">删除</a>
+                {% endif %}
+                {% endfor %}
+            </div>
         </div>
             <div class="col-3 mt-4">
                 <h4><strong>目录</strong></h4>
