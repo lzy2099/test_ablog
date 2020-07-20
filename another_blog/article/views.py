@@ -50,12 +50,15 @@ def article_detail(request, id):
     article = ArticlePost.objects.get(id=id)
     article.total_views += 1
     article.save(update_fields=['total_views'])
-    article.body = markdown.markdown(
-        article.body, extensions=[
+    md = markdown.Markdown(
+        extensions=[
             'markdown.extensions.extra',
             'markdown.extensions.codehilite',
+            # 目录扩展 有些版本中是大写的 TOC
+            'markdown.extensions.toc',
         ])
-    context = {'article': article}
+    article.body = md.convert(article.body)
+    context = {'article': article, 'toc': md.toc}
     return render(request, 'article/detail.html', context)
 
 
