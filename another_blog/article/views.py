@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import ArticlePost
+from .models import ArticlePost, ArticleColumn
 import markdown
 from .forms import ArticlePostForm
 from django.contrib.auth.models import User
@@ -77,6 +77,9 @@ def article_create(request):
             new_article = article_post_form.save(commit=False)
             # 指定用户为作者。  这里指定id=1的用户作为作者。
             new_article.author = User.objects.get(id=request.user.id)
+            # 添加分类
+            if request.POST['comumn'] != 'none':
+                new_article.column = ArticleColumn.objects.get(id=request.POST['column'])
             # 新文章保存到数据库中
             new_article.save()
             # 存储完成后，返回文章列表
@@ -88,7 +91,8 @@ def article_create(request):
     else:
         # 创建表单实例
         article_post_form = ArticlePostForm()
-        context = {'article_post_form': article_post_form}
+        columns = ArticleColumn.objects.all()
+        context = {'article_post_form': article_post_form, 'columns': columns}
         # 返回模板
         return render(request, 'article/create.html', context)
 
@@ -129,6 +133,10 @@ def article_update(request, id):
             article_post_form = ArticlePostForm(data=request.POST)
             if article_post_form.is_valid():
                 article.title = request.POST['title']
+                if request.POST['column'] != 'none':
+                    article.column = ArticleColumn.objects.get(id=request.POST['column'])
+                else:
+                    article.column = None
                 article.body = request.POST['body']
                 article.save()
                 return redirect("article:article_detail", id=id)
@@ -136,5 +144,6 @@ def article_update(request, id):
                 return HttpResponse("表单内容有误，请重新填写。")
         else:
             article_post_form = ArticlePostForm()
-            context = {'article': article, 'article_post_form': article_post_form}
+            columns = ArticleColumn.objects.all()
+            context = {'article': article, 'article_post_form': article_post_form, 'columns': columns}
             return render(request, 'article/update.html', context)

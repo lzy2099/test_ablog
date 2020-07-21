@@ -39,8 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'article',
     'userprofile',
-    'password_reset',
     'comment',
+    'password_reset',
+    'taggit',
 ]
 
 MIDDLEWARE = [
