@@ -14,34 +14,28 @@ from comment.models import Comment
 def article_list(request):
     search = request.GET.get('search')
     order = request.GET.get('order')
+    column = request.GET.get('column')
+    tag = request.GET.get('tag')
+    articles_list = ArticlePost.objects.all()
     if search:
-        if order == 'total_views':
-            articles_list = ArticlePost.objects.filter(
-                Q(title__icontains=search) | Q(body__icontains=search)
-            ).order_by('-total_views')
-        else:
-            articles_list = ArticlePost.objects.filter(
-                Q(title__icontains=search) | Q(body__icontains=search)
-            )
+        articles_list = articles_list.filter(
+            Q(title__icontains=search)|Q(body__icontains=search)
+        )
     else:
         search = ''
-        if order == 'total_views':
-            articles_list = ArticlePost.objects.all().order_by('-total_views')
-        else:
-            articles_list = ArticlePost.objects.all().order_by('-created')
-
-
-    # if request.GET.get('order') == 'total_views':
-    #     articles_list = ArticlePost.objects.all().order_by('-total_views')
-    #     order = 'total_views'
-    # else:
-    #     articles_list = ArticlePost.objects.all()
-    #     order = 'normal'
-
+    if column is not None and column.isdigit():
+        articles_list = articles_list.filter(column=column)
+    if tag and tag != 'None':
+        # django-taggit 标签过滤写法。支持多标签联合查询： Model.objects.filter(tags__name__in=["tag1", "tag2"])
+        articles_list = articles_list.filter(tags__name__in=[tag])
+    if order == 'total_views':
+        articles_list = articles_list.order_by('-total_views')
+    else:
+        articles_list = articles_list.order_by('-created')
     paginator = Paginator(articles_list, 3)
     page = request.GET.get('page')
     articles = paginator.get_page(page)
-    context = {'articles': articles, 'order': order, 'search': search}
+    context = {'articles': articles, 'order': order, 'search': search, 'column': column, 'tag': tag,}
 
     return render(request, 'article/list.html', context)
 
@@ -75,13 +69,14 @@ def article_create(request):
         if article_post_form.is_valid():
             # 保存数据，暂时不添加到数据库中。
             new_article = article_post_form.save(commit=False)
-            # 指定用户为作者。  这里指定id=1的用户作为作者。
+            # 指定用户为作者。
             new_article.author = User.objects.get(id=request.user.id)
             # 添加分类
-            if request.POST['comumn'] != 'none':
+            if request.POST['column'] != 'none':
                 new_article.column = ArticleColumn.objects.get(id=request.POST['column'])
             # 新文章保存到数据库中
             new_article.save()
+            article_post_form.save_m2m()
             # 存储完成后，返回文章列表
             return redirect("article:article_list")
         # 如果数据不合法，返回错误信息。
@@ -137,11 +132,14 @@ def article_update(request, id):
                     article.column = ArticleColumn.objects.get(id=request.POST['column'])
                 else:
                     article.column = None
+
                 article.body = request.POST['body']
                 article.save()
+
                 return redirect("article:article_detail", id=id)
             else:
                 return HttpResponse("表单内容有误，请重新填写。")
+
         else:
             article_post_form = ArticlePostForm()
             columns = ArticleColumn.objects.all()
