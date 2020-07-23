@@ -44,6 +44,17 @@ def article_list(request):
 def article_detail(request, id):
     article = ArticlePost.objects.get(id=id)
     comments = Comment.objects.filter(article=id)
+    pre_article = ArticlePost.objects.filter(id__lt=article.id).order_by('-id')
+    next_article = ArticlePost.objects.filter(id__gt=article.id).order_by('id')
+    if pre_article.count() > 0:
+        pre_article = pre_article[0]
+    else:
+        pre_article = None
+
+    if next_article.count() > 0:
+        next_article = next_article[0]
+    else:
+        next_article = None
     article.total_views += 1
     article.save(update_fields=['total_views'])
     md = markdown.Markdown(
@@ -54,7 +65,7 @@ def article_detail(request, id):
             'markdown.extensions.toc',
         ])
     article.body = md.convert(article.body)
-    context = {'article': article, 'toc': md.toc, 'comments': comments}
+    context = {'article': article, 'toc': md.toc, 'comments': comments, 'pre_article': pre_article, 'next_article': next_article}
     return render(request, 'article/detail.html', context)
 
 
