@@ -75,32 +75,33 @@
                 {% endfor %}
             </div>
         </div>
-            <div class="col-3 mt-4">
-                <h4><strong>目录</strong></h4>
-                <hr>
-                <div>
-                    {{ toc|safe }}
+            <!-- 粘性侧边栏-->
+            <div class="col-3 mt-4" id="sidebar" class="sidebar">
+                <div class="sidebar__inner">
+                    <h4><strong>目录</strong></h4>
+                    <hr>
+                    <div>
+                        {{ toc|safe }}
+                    </div>
                 </div>
             </div>
     </div>
 </div>
-<script>
-    // 删除文章函数 版本一 不安全
-    // function confirm_delete(){
-    //     // 调用layer弹窗组件
-    //     layer.open({
-    //         // 弹窗标题
-    //         title: "确认删除",
-    //         // 弹窗内显示的内容
-    //         content: "确认删除这篇文章吗？",
-    //         // 点击确定后调用的回调函数
-    //         yes: function (index, layero) {
-    //             // 指定跳转的 URL
-    //             location.href='{% url "article:article_delete" article.id %}'
-    //         },
-    //     })
-    // }
 
+<style>
+    .sidebar{
+        will-change: min-hight;
+    }
+    .sidebar__inner{
+        transform: translate(0, 0);
+        transform: translate3d(0,0,0);
+        will-change: position, transform;
+    }
+</style>
+
+
+
+<script>
     // 方法二 安全删除
     function confirm_safe_delete() {
         layer.open({
@@ -113,4 +114,15 @@
         })
     }
 </script>
+
+{% block script %}
+<script type="text/javascript" src="{% static 'jquery.sticky-sidebar.min.js' %}"></script>
+<script type="text/javascript">
+    $('#sidebar').stickySidebar({
+        topSpacing: 20,
+        bottomSpacing: 20,
+    });
+</script>
+{% endblock script %}
+
 {% endblock content %}

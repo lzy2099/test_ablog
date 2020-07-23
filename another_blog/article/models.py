@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.utils import timezone
 from taggit.managers import TaggableManager
+from PIL import Image
 
 
 class ArticleColumn(models.Model):
@@ -16,6 +17,7 @@ class ArticleColumn(models.Model):
 class ArticlePost(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
+    avatar = models.ImageField(upload_to='article/%Y%m%d/', blank=True)
     tags = TaggableManager(blank=True)
     column = models.ForeignKey(
         ArticleColumn, null=True, blank=True, on_delete=models.CASCADE, related_name='article'
@@ -34,3 +36,14 @@ class ArticlePost(models.Model):
     # 获取文章地址
     def get_absolute_url(self):
         return reverse('article:article_detail', args=[self.id])
+
+    def save(self, *args, **kwargs):
+        article = super(ArticlePost, self).save(*args, **kwargs)
+        if self.avatar and not kwargs.get('update_fields'):
+            image = Image.open(self.avatar)
+            (x, y) = image.size
+            new_x = 400
+            new_y = int(new_x * (x / y))
+            resized_image = image.resize((new_x, new_y), Image.ANTIALIAS)
+            resized_image.save(self.avatar.path)
+        return article

@@ -64,7 +64,14 @@
 <!--    列表式显示 -->
   <div class="row mt-2">
     {% for article in articles %}
-      <div class="col-12">
+      <!--    标题配图-->
+      {% if article.avatar %}
+        <div class="col-3">
+          <img src="{{ article.avatar.url }}" alt="avatar" style="max-width: 100%; border-radius: 20px">
+        </div>
+      {% endif %}
+      <!--    文章分类-->
+      <div class="col">
         {% if article.column %}
           <button type="button" class="btn btn-sm mb-2
                   {% if article.column.title == '技术' %}
@@ -94,17 +101,20 @@
         </div>
         <p>
           <span style="color: green;">
+            <i class="fas fa-eye" style="color: lightskyblue;"></i>
             {{ article.total_views }} 浏览&nbsp;&nbsp;&nbsp;
           </span>
           <span style="color: blue;">
+            <i class="fas fa-pen" style="color: yellowgreen;"></i>
             {{ article.created|date:'Y-m-d' }}发表&nbsp;&nbsp;&nbsp;
           </span>
           <span style="color: darkred;">
+            <i class="fas fa-eraser" style="color: coral;"></i>
             {{ article.updated|date:'Y-m-d' }}更新
           </span>
         </p>
-        <hr>
       </div>
+    <hr style="width: 100%">
     {% endfor %}
   </div>
 

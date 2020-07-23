@@ -64,7 +64,7 @@ def article_create(request):
     # 判断用户是否提交数据
     if request.method == "POST":
         # 将提交的数据赋值到新表单实例中
-        article_post_form = ArticlePostForm(data=request.POST)
+        article_post_form = ArticlePostForm(request.POST, request.FILES)
         # 判断提交的数据是否满足模型要求
         if article_post_form.is_valid():
             # 保存数据，暂时不添加到数据库中。
@@ -128,6 +128,9 @@ def article_update(request, id):
             article_post_form = ArticlePostForm(data=request.POST)
             if article_post_form.is_valid():
                 article.title = request.POST['title']
+                if request.FILES.get('avatar'):
+                    article.avatar = request.FILES.get('avatar')
+                article.tags.set(*request.POST.get('tags').split(','), clear=True)
                 if request.POST['column'] != 'none':
                     article.column = ArticleColumn.objects.get(id=request.POST['column'])
                 else:
@@ -143,5 +146,5 @@ def article_update(request, id):
         else:
             article_post_form = ArticlePostForm()
             columns = ArticleColumn.objects.all()
-            context = {'article': article, 'article_post_form': article_post_form, 'columns': columns}
+            context = {'article': article, 'article_post_form': article_post_form, 'columns': columns, 'tags': ','.join([x for x in article.tags.names()])}
             return render(request, 'article/update.html', context)
