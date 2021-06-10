@@ -29,7 +29,6 @@ def article_list(request):
         else:
             articles_list = ArticlePost.objects.all().order_by('-created')
 
-
     # if request.GET.get('order') == 'total_views':
     #     articles_list = ArticlePost.objects.all().order_by('-total_views')
     #     order = 'total_views'
